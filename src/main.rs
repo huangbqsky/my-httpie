@@ -1,4 +1,4 @@
-
+#![allow(dead_code)]
 use anyhow::{anyhow, Result};
 use clap::{AppSettings, Clap};
 use colored::*;
@@ -125,19 +125,20 @@ fn print_headers(resp: &Response) {
     print!("\n");
 }
 
-/// 打印服务器返回的 HTTP body
+/// 打印服务器返回的 HTTP body (使用 jsonxf::pretty_print)
 fn print_body(m: Option<Mime>, body: &String) {
     match m {
         // 对于 "application/json" 我们 pretty print
         Some(v) if v == mime::APPLICATION_JSON => {
-            // println!("{}", jsonxf::pretty_print(body).unwrap().cyan())
-            print_syntect(body);
+            println!("{}", jsonxf::pretty_print(body).unwrap().cyan());
+            // print_syntect(body);
         }
         // 其他 mime type，我们就直接输出
         _ => println!("{}", body),
     }
 }
 
+/// 打印服务器返回的 HTTP body (使用 syntect HighlightLines)
 fn print_syntect(s: &str) {
     // Load these once at the start of your program
     let ps = SyntaxSet::load_defaults_newlines();
@@ -145,7 +146,7 @@ fn print_syntect(s: &str) {
     let syntax = ps.find_syntax_by_extension("json").unwrap();
     let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
     for line in LinesWithEndings::from(s) {
-        let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ps).expect("highlight line error!");
+        let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ps).expect("highlight line error");
         let escaped = as_24_bit_terminal_escaped(&ranges[..], true);
         println!("{}", escaped);
     }
